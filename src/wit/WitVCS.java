@@ -3,6 +3,7 @@ package wit;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -41,16 +42,40 @@ public class WitVCS {
     }
 
     public void test() {
-        String contents[] = repoFile.list();
+        processDirectory(repoFile);
+    }
+
+    private void processDirectory(File directory) {
+        String contents[] = directory.list();
 
         for (String content : contents){
+            System.out.println("Content : " + content);
             if(content.equals(".wit")) {
                 continue;
             }
-            File contentFile = new File(repoFile.getAbsolutePath() + "\\" + content);
+
+            File contentFile = new File(directory.getAbsolutePath() + "\\" + content);
             if(contentFile.isFile()) {
                 byte[] contentData = Utils.readContents(contentFile);
-                System.out.println("SHA-1 value for " + content + " is " + Utils.computeSHA1(contentData));
+                String contentSha = Utils.computeSHA1(contentData);
+                System.out.println("SHA-1 value for " + content + " is " + contentSha);
+
+                File contentBlob = new File(witFile.getAbsolutePath() + "\\" + contentSha);
+                if(contentBlob.exists()) {
+                    continue;
+                }else{
+                    try {
+                        contentBlob.createNewFile();
+                        Utils.writeContents(contentBlob, contentData);
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException(e.getMessage());
+                    }
+                }
+            }
+
+            if(contentFile.isDirectory()) {
+                System.out.println(content + " is a directory");
+                processDirectory(contentFile);
             }
         }
     }
