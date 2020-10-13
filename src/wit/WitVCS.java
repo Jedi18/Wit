@@ -2,10 +2,7 @@ package wit;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 /** WitVCS class
  *  @author Jedi18
@@ -42,14 +39,39 @@ public class WitVCS {
     }
 
     public void test() {
-        processDirectory(repoFile);
+        generateTree(processDirectory(repoFile), new File(witFile.getAbsolutePath() + "\\testFolder"));
     }
 
-    private void processDirectory(File directory) {
+    /* Generate tree to the given directory */
+    private void generateTree(String treeHash, File directory) {
+        File tree1 = new File(witFile.getAbsolutePath() + "\\" + treeHash);
+        Tree tree = Utils.readObject(tree1, Tree.class);
+
+        tree.printTree();
+        directory.mkdir();
+
+        for(TreeData td : tree.dataList) {
+            if(td.type == TreeData.TreeDataType.Tree) {
+                generateTree(td.sha, new File(directory.getAbsolutePath() + "\\" + td.path));
+            }else if(td.type == TreeData.TreeDataType.Blog) {
+                File contentFile = new File(directory.getAbsolutePath() + "\\" + td.path);
+                File blobFile = new File(witFile.getAbsolutePath() + "\\" + td.sha);
+                byte[] content = Utils.readContents(blobFile);
+                try {
+                    contentFile.createNewFile();
+                    Utils.writeContents(contentFile, content);
+                } catch (IOException e) {
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private String processDirectory(File directory) {
         String contents[] = directory.list();
+        Tree tree = new Tree();
 
         for (String content : contents){
-            System.out.println("Content : " + content);
             if(content.equals(".wit")) {
                 continue;
             }
@@ -58,12 +80,9 @@ public class WitVCS {
             if(contentFile.isFile()) {
                 byte[] contentData = Utils.readContents(contentFile);
                 String contentSha = Utils.computeSHA1(contentData);
-                System.out.println("SHA-1 value for " + content + " is " + contentSha);
 
                 File contentBlob = new File(witFile.getAbsolutePath() + "\\" + contentSha);
-                if(contentBlob.exists()) {
-                    continue;
-                }else{
+                if(!contentBlob.exists()) {
                     try {
                         contentBlob.createNewFile();
                         Utils.writeContents(contentBlob, contentData);
@@ -71,13 +90,29 @@ public class WitVCS {
                         throw new IllegalArgumentException(e.getMessage());
                     }
                 }
+
+                tree.addBlob(contentSha, contentFile.getName());
             }
 
             if(contentFile.isDirectory()) {
-                System.out.println(content + " is a directory");
-                processDirectory(contentFile);
+                String directorySha = processDirectory(contentFile);
+                tree.addTree(directorySha, contentFile.getName());
             }
         }
+
+        byte[] contentTreeData = Utils.serialize(tree);
+        String contentTreeSha = Utils.computeSHA1(contentTreeData);
+        File contentTree = new File(witFile.getAbsolutePath() + "\\" + contentTreeSha);
+        if(!contentTree.exists()) {
+            try {
+                contentTree.createNewFile();
+                Utils.writeContents(contentTree, contentTreeData);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e.getMessage());
+            }
+        }
+
+        return contentTreeSha;
     }
 
     public static WitVCS getWit() {
