@@ -23,4 +23,8 @@ public class Tree implements Serializable {
             System.out.println("SHA-1 : " + treeData.sha + " Type : " + treeData.type + " Path : " + treeData.path);
         }
     }
+
+    public boolean isEmpty() {
+        return dataList.isEmpty();
+    }
 }

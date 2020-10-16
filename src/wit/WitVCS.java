@@ -11,10 +11,12 @@ public class WitVCS {
     private static WitVCS instance = null;
     File witFile = null;
     File repoFile = null;
+    StagingArea stagingArea;
 
     public WitVCS(File witFile, String directoryPath) {
         this.witFile = witFile;
         this.repoFile = new File(directoryPath);
+        this.stagingArea = new StagingArea(witFile);
     }
 
     /* Initialize git repository */
@@ -39,7 +41,22 @@ public class WitVCS {
     }
 
     public void test() {
-        generateTree(processDirectory(repoFile), new File(witFile.getAbsolutePath() + "\\testFolder"));
+        stagingArea.addDirectory(repoFile);
+        String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
+        generateTree(directoryHash, new File(witFile.getAbsolutePath() + "\\testFolder"));
+        stagingArea.addDirectory(repoFile);
+    }
+
+    public void stagePath(String path) {
+        File stageFile = new File(path);
+
+        if(stageFile.isDirectory()) {
+            stagingArea.addDirectory(stageFile);
+        }
+    }
+
+    private void processCommit() {
+
     }
 
     /* Generate tree to the given directory */
@@ -65,54 +82,6 @@ public class WitVCS {
                 }
             }
         }
-    }
-
-    private String processDirectory(File directory) {
-        String contents[] = directory.list();
-        Tree tree = new Tree();
-
-        for (String content : contents){
-            if(content.equals(".wit")) {
-                continue;
-            }
-
-            File contentFile = new File(directory.getAbsolutePath() + "\\" + content);
-            if(contentFile.isFile()) {
-                byte[] contentData = Utils.readContents(contentFile);
-                String contentSha = Utils.computeSHA1(contentData);
-
-                File contentBlob = new File(witFile.getAbsolutePath() + "\\" + contentSha);
-                if(!contentBlob.exists()) {
-                    try {
-                        contentBlob.createNewFile();
-                        Utils.writeContents(contentBlob, contentData);
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException(e.getMessage());
-                    }
-                }
-
-                tree.addBlob(contentSha, contentFile.getName());
-            }
-
-            if(contentFile.isDirectory()) {
-                String directorySha = processDirectory(contentFile);
-                tree.addTree(directorySha, contentFile.getName());
-            }
-        }
-
-        byte[] contentTreeData = Utils.serialize(tree);
-        String contentTreeSha = Utils.computeSHA1(contentTreeData);
-        File contentTree = new File(witFile.getAbsolutePath() + "\\" + contentTreeSha);
-        if(!contentTree.exists()) {
-            try {
-                contentTree.createNewFile();
-                Utils.writeContents(contentTree, contentTreeData);
-            } catch (IOException e) {
-                throw new IllegalArgumentException(e.getMessage());
-            }
-        }
-
-        return contentTreeSha;
     }
 
     public static WitVCS getWit() {
