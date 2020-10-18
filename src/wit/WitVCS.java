@@ -3,6 +3,7 @@ package wit;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Date;
 
 /** WitVCS class
  *  @author Jedi18
@@ -12,6 +13,9 @@ public class WitVCS {
     File witFile = null;
     File repoFile = null;
     StagingArea stagingArea;
+    BranchManager branchManager;
+
+    private String author = "Jedi18";
 
     public WitVCS(File witFile, String directoryPath) {
         this.witFile = witFile;
@@ -41,10 +45,9 @@ public class WitVCS {
     }
 
     public void test() {
-        stagingArea.addDirectory(repoFile);
+        //stagingArea.addDirectory(repoFile);
         String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
         generateTree(directoryHash, new File(witFile.getAbsolutePath() + "\\testFolder"));
-        stagingArea.addDirectory(repoFile);
     }
 
     public void stagePath(String path) {
@@ -55,8 +58,30 @@ public class WitVCS {
         }
     }
 
-    private void processCommit() {
+    public void status() {
+        stagingArea.printStatus();
+    }
 
+    private void processCommit() {
+        String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
+        Commit commit = new Commit(directoryHash, author, new Date(), "null");
+        String commitSha = getCommitHash(commit);
+    }
+
+    protected String getCommitHash(Commit commit) {
+        byte[] commitData = Utils.serialize(commit);
+        String commitSha = Utils.computeSHA1(commitData);
+        File commitFile = new File(witFile.getAbsolutePath() + "\\" + commitSha);
+        if(!commitFile.exists()) {
+            try {
+                commitFile.createNewFile();
+                Utils.writeContents(commitFile, commitData);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e.getMessage());
+            }
+        }
+
+        return commitSha;
     }
 
     /* Generate tree to the given directory */

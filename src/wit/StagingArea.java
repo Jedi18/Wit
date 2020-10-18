@@ -6,16 +6,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class StagingArea {
-    private Set<String> stagedFiles;
+    private HashSet<String> stagedFiles;
     File witFile = null;
 
     public StagingArea(File witFile) {
         this.witFile = witFile;
-        this.stagedFiles = new HashSet<>();
+        readStageFile();
+        printStatus();
     }
 
     public void addFile(File file) {
         stagedFiles.add(file.getAbsolutePath());
+        writeToStageFile();
     }
 
     public void addDirectory(File dir) {
@@ -33,6 +35,41 @@ public class StagingArea {
 
             if(contentFile.isDirectory()) {
                 addDirectory(contentFile);
+            }
+        }
+
+        writeToStageFile();
+    }
+
+    protected void printStatus() {
+        System.out.println("Staged Files : - ");
+        for(String stagedFile : stagedFiles) {
+            System.out.println(stagedFile);
+        }
+    }
+
+    private void writeToStageFile() {
+        File stageFile = new File(witFile.getAbsolutePath() + "\\stageData");
+        if(!stageFile.exists()) {
+            try{
+                stageFile.createNewFile();
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e.getMessage());
+            }
+        }
+
+        StagingData stagingData = new StagingData(stagedFiles);
+        Utils.writeContents(stageFile, Utils.serialize(stagingData));
+    }
+
+    private void readStageFile() {
+        File stageFile = new File(witFile.getAbsolutePath() + "\\stageData");
+        this.stagedFiles = new HashSet<>();
+
+        if(stageFile.exists()) {
+            StagingData stagingData = Utils.readObject(stageFile, StagingData.class);
+            for(int i = 0; i < stagingData.n; i++) {
+                this.stagedFiles.add(stagingData.stagingData[i]);
             }
         }
     }

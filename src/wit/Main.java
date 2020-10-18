@@ -12,7 +12,11 @@ public class Main {
 	    if(command.equals("init")) {
             init();
         } else if (command.equals("add")) {
-
+            if(args.length != 2) {
+                System.out.println("Usage for wit add :- java wit.Main add path_to_directory/path_to_file");
+                return;
+            }
+            WitVCS.getWit().stagePath(args[1]);
         } else if (command.equals("commit")) {
 
         } else if (command.equals("rm")) {
@@ -24,7 +28,7 @@ public class Main {
         } else if (command.equals("find")) {
 
         } else if (command.equals("status")) {
-
+            WitVCS.getWit().status();
         } else if (command.equals("checkout")) {
 
         } else if (command.equals("branch")) {
