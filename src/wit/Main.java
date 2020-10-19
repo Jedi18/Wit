@@ -18,7 +18,13 @@ public class Main {
             }
             WitVCS.getWit().stagePath(args[1]);
         } else if (command.equals("commit")) {
+            if(args.length != 1) {
+                System.out.println("Usage for wit commit :- java wit.Main commit");
+            }
 
+            if(WitVCS.initialize()) {
+                WitVCS.getWit().processCommit();
+            }
         } else if (command.equals("rm")) {
 
         } else if (command.equals("log")) {
@@ -28,9 +34,17 @@ public class Main {
         } else if (command.equals("find")) {
 
         } else if (command.equals("status")) {
-            WitVCS.getWit().status();
+            if(WitVCS.initialize()) {
+                WitVCS.getWit().status();
+            }
         } else if (command.equals("checkout")) {
+            if(args.length != 2) {
+                System.out.println("Usage for wit checkout :- java wit.Main checkout branch_name");
+            }
 
+            if(WitVCS.initialize()) {
+                WitVCS.getWit().checkout(args[1]);
+            }
         } else if (command.equals("branch")) {
 
         } else if (command.equals("rm-branch")) {

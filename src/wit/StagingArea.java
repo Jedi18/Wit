@@ -49,7 +49,7 @@ public class StagingArea {
     }
 
     private void writeToStageFile() {
-        File stageFile = new File(witFile.getAbsolutePath() + "\\stageData");
+        File stageFile = new File(witFile.getAbsolutePath() + "\\metadata\\stageData");
         if(!stageFile.exists()) {
             try{
                 stageFile.createNewFile();
@@ -63,7 +63,7 @@ public class StagingArea {
     }
 
     private void readStageFile() {
-        File stageFile = new File(witFile.getAbsolutePath() + "\\stageData");
+        File stageFile = new File(witFile.getAbsolutePath() + "\\metadata\\stageData");
         this.stagedFiles = new HashSet<>();
 
         if(stageFile.exists()) {

@@ -21,6 +21,7 @@ public class WitVCS {
         this.witFile = witFile;
         this.repoFile = new File(directoryPath);
         this.stagingArea = new StagingArea(witFile);
+        this.branchManager = new BranchManager(witFile);
     }
 
     /* Initialize git repository */
@@ -36,6 +37,9 @@ public class WitVCS {
 
         try {
             Files.createDirectory(witPath.toPath());
+            File metadataFolder = new File(witPath.toPath() + "\\metadata");
+            metadataFolder.mkdir();
+
             instance = new WitVCS(witPath, directoryPath);
         } catch (IOException ioException) {
             System.out.println("Could not create .wit directory.");
@@ -45,7 +49,7 @@ public class WitVCS {
     }
 
     public void test() {
-        //stagingArea.addDirectory(repoFile);
+        stagingArea.addDirectory(repoFile);
         String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
         generateTree(directoryHash, new File(witFile.getAbsolutePath() + "\\testFolder"));
     }
@@ -62,10 +66,29 @@ public class WitVCS {
         stagingArea.printStatus();
     }
 
-    private void processCommit() {
+    public void checkout(String branchName) {
+        String commitSha = branchManager.getBranchCommit(branchName);
+
+        if(commitSha == null) {
+            System.out.println("Branch of given name " + branchName + " does not exist.");
+            return;
+        }
+
+        Commit commit = readCommit(commitSha);
+        generateTree(commit.treeHash, new File(witFile.getAbsolutePath() + "\\testFolder2"));
+    }
+
+    private Commit readCommit(String commitSha) {
+        File commitFile = new File(witFile.getAbsolutePath() + "\\" + commitSha);
+        Commit commit = Utils.readObject(commitFile, Commit.class);
+        return commit;
+    }
+
+    public void processCommit() {
         String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
         Commit commit = new Commit(directoryHash, author, new Date(), "null");
         String commitSha = getCommitHash(commit);
+        branchManager.updateCommit(commitSha);
     }
 
     protected String getCommitHash(Commit commit) {
