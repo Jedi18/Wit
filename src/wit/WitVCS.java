@@ -24,6 +24,18 @@ public class WitVCS {
         this.branchManager = new BranchManager(witFile);
     }
 
+    public static boolean initialized() {
+        String directoryPath = "C:\\Users\\targe\\Documents\\wittest";
+        File witPath = new File(directoryPath + "/.wit");
+
+        if(Files.exists(witPath.toPath())) {
+            instance = new WitVCS(witPath, directoryPath);
+            return true;
+        }
+
+        return false;
+    }
+
     /* Initialize git repository */
     public static boolean initialize() {
         //String directoryPath = System.getProperty("user.dir");
@@ -55,8 +67,11 @@ public class WitVCS {
     }
 
     public void stagePath(String path) {
-        File stageFile = new File(path);
+        if(path.equals(".")) {
+            path = repoFile.getAbsolutePath();
+        }
 
+        File stageFile = new File(path);
         if(stageFile.isDirectory()) {
             stagingArea.addDirectory(stageFile);
         }
@@ -86,9 +101,11 @@ public class WitVCS {
 
     public void processCommit() {
         String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
-        Commit commit = new Commit(directoryHash, author, new Date(), "null");
+        String parentCommit = branchManager.getBranchCommit(branchManager.head);
+        Commit commit = new Commit(directoryHash, author, new Date(), parentCommit);
         String commitSha = getCommitHash(commit);
         branchManager.updateCommit(commitSha);
+        stagingArea.clear();
     }
 
     protected String getCommitHash(Commit commit) {

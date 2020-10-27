@@ -12,7 +12,6 @@ public class StagingArea {
     public StagingArea(File witFile) {
         this.witFile = witFile;
         readStageFile();
-        printStatus();
     }
 
     public void addFile(File file) {
@@ -72,6 +71,11 @@ public class StagingArea {
                 this.stagedFiles.add(stagingData.stagingData[i]);
             }
         }
+    }
+
+    protected void clear() {
+        stagedFiles.clear();
+        writeToStageFile();
     }
 
     protected String getTreeHash(Tree tree) {
