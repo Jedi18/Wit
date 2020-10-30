@@ -75,6 +75,10 @@ public class WitVCS {
         if(stageFile.isDirectory()) {
             stagingArea.addDirectory(stageFile);
         }
+
+        String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
+        stagingArea.updateDirectoryHash(directoryHash);
+        stagingArea.writeToStageFile();
     }
 
     public void status() {
@@ -100,7 +104,8 @@ public class WitVCS {
     }
 
     public void processCommit() {
-        String directoryHash = stagingArea.getTreeHash(stagingArea.processDirectory(repoFile));
+        stagingArea.moveDataFromStagedToCommit();
+        String directoryHash = stagingArea.getStagedDirectoryHash();
         String parentCommit = branchManager.getBranchCommit(branchManager.head);
         Commit commit = new Commit(directoryHash, author, new Date(), parentCommit);
         String commitSha = getCommitHash(commit);
