@@ -19,7 +19,7 @@ public class BranchManager {
     }
 
     void updateCommit(String commitSha) {
-        if(head == "null") {
+        if(head.equals("null")) {
             head = "master";
         }
 
@@ -41,7 +41,7 @@ public class BranchManager {
         if(branchDataFile.exists()) {
             BranchData branchData = Utils.readObject(branchDataFile, BranchData.class);
             this.branchToCommit = branchData.branchMap;
-            this.head = head;
+            this.head = branchData.head;
         }else{
             writeBranchData();
         }

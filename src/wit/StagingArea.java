@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class StagingArea {
-    private HashSet<String> stagedFiles;
+    protected HashSet<String> stagedFiles;
     File witFile = null;
     String currentStagedDirectoryHash;
 
@@ -38,13 +38,6 @@ public class StagingArea {
             if (contentFile.isDirectory()) {
                 addDirectory(contentFile);
             }
-        }
-    }
-
-    protected void printStatus() {
-        System.out.println("Staged Files : - ");
-        for(String stagedFile : stagedFiles) {
-            System.out.println(stagedFile);
         }
     }
 
@@ -79,6 +72,10 @@ public class StagingArea {
         stagedFiles.clear();
         currentStagedDirectoryHash = null;
         writeToStageFile();
+    }
+
+    protected int size() {
+        return stagedFiles.size();
     }
 
     protected String getTreeHash(Tree tree) {
@@ -161,6 +158,7 @@ public class StagingArea {
                 File newFile = new File(witFile.getAbsolutePath() + "\\" + content);
 
                 if(newFile.exists()) {
+                    oldFile.delete();
                     continue;
                 }
 

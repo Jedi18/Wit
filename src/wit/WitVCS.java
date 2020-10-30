@@ -82,7 +82,7 @@ public class WitVCS {
     }
 
     public void status() {
-        stagingArea.printStatus();
+        Log.status(branchManager, stagingArea);
     }
 
     public void checkout(String branchName) {
@@ -93,24 +93,27 @@ public class WitVCS {
             return;
         }
 
-        Commit commit = readCommit(commitSha);
+        Commit commit = Commit.readCommit(witFile, commitSha);
         generateTree(commit.treeHash, new File(witFile.getAbsolutePath() + "\\testFolder2"));
     }
 
-    private Commit readCommit(String commitSha) {
-        File commitFile = new File(witFile.getAbsolutePath() + "\\" + commitSha);
-        Commit commit = Utils.readObject(commitFile, Commit.class);
-        return commit;
-    }
+    public void processCommit(String commitMessage) {
+        if(stagingArea.size() == 0) {
+            System.out.println("No files staged.");
+            return;
+        }
 
-    public void processCommit() {
         stagingArea.moveDataFromStagedToCommit();
         String directoryHash = stagingArea.getStagedDirectoryHash();
         String parentCommit = branchManager.getBranchCommit(branchManager.head);
-        Commit commit = new Commit(directoryHash, author, new Date(), parentCommit);
+        Commit commit = new Commit(directoryHash, commitMessage, author, new Date(), parentCommit);
         String commitSha = getCommitHash(commit);
         branchManager.updateCommit(commitSha);
         stagingArea.clear();
+    }
+
+    public void printLog() {
+        Log.log(witFile, branchManager.getBranchCommit(branchManager.head));
     }
 
     protected String getCommitHash(Commit commit) {
