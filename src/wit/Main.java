@@ -39,19 +39,27 @@ public class Main {
 
                 WitVCS.getWit().printLog();
             } else if (command.equals("global-log")) {
+                if(printRequiredArgs(args.length, 1, "global-log")){
+                    return;
+                }
 
+                WitVCS.getWit().printGlobalLog();
             } else if (command.equals("find")) {
 
             } else if (command.equals("status")) {
                 WitVCS.getWit().status();
             } else if (command.equals("checkout")) {
-                if(args.length != 2) {
-                    System.out.println("Usage for wit checkout :- java wit.Main checkout branch_name");
+                if(printRequiredArgs(args.length, 2, "checkout", "branch_name/commit_sha")){
+                    return;
                 }
 
                 WitVCS.getWit().checkout(args[1]);
             } else if (command.equals("branch")) {
+                if(printRequiredArgs(args.length, 2, "branch", "branch_name")) {
+                    return;
+                }
 
+                WitVCS.getWit().createBranch(args[1]);
             } else if (command.equals("rm-branch")) {
 
             } else if (command.equals("reset")) {

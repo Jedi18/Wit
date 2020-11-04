@@ -27,6 +27,12 @@ public class BranchManager {
         writeBranchData();
     }
 
+    void createBranch(String branchName) {
+        // TODO make sure head is not null
+        branchToCommit.put(branchName, getBranchCommit(head));
+        writeBranchData();
+    }
+
     String getBranchCommit(String branchName) {
         if(!branchToCommit.containsKey(branchName)) {
             return null;

@@ -1,6 +1,7 @@
 package wit;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Map;
 
 /* Print status and commit log information */
@@ -19,6 +20,13 @@ public class Log {
             commitSha = commit.parentCommitHash;
             commit = Commit.readCommit(witFile, commit.parentCommitHash);
         }
+    }
+
+    protected static void global_log(File witFile, BranchManager branchManager) {
+       for(String branchName : branchManager.branchToCommit.keySet()) {
+           System.out.println("Branch : " + branchName);
+           log(witFile, branchManager.getBranchCommit(branchName));
+       }
     }
 
     protected static void status(BranchManager branchManager, StagingArea stagingArea) {

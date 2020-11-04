@@ -89,12 +89,21 @@ public class WitVCS {
         String commitSha = branchManager.getBranchCommit(branchName);
 
         if(commitSha == null) {
-            System.out.println("Branch of given name " + branchName + " does not exist.");
-            return;
-        }
+            // commit sha
+            commitSha = branchName;
+            Commit commit = Commit.readCommit(witFile, commitSha);
 
-        Commit commit = Commit.readCommit(witFile, commitSha);
-        generateTree(commit.treeHash, new File(witFile.getAbsolutePath() + "\\testFolder2"));
+            if(commit == null) {
+                System.out.println("Not a branch name or valid commit sha value.");
+                return;
+            }
+
+            generateTree(commit.treeHash, new File(witFile.getAbsolutePath() + "\\testFolder3"));
+        }else{
+            // branch
+            Commit commit = Commit.readCommit(witFile, commitSha);
+            generateTree(commit.treeHash, new File(witFile.getAbsolutePath() + "\\testFolder2"));
+        }
     }
 
     public void processCommit(String commitMessage) {
@@ -114,6 +123,14 @@ public class WitVCS {
 
     public void printLog() {
         Log.log(witFile, branchManager.getBranchCommit(branchManager.head));
+    }
+
+    public void printGlobalLog() {
+        Log.global_log(witFile, branchManager);
+    }
+
+    public void createBranch(String branchName) {
+        branchManager.createBranch(branchName);
     }
 
     protected String getCommitHash(Commit commit) {
